@@ -26,6 +26,7 @@
     <script>
         let currentStep = 1;
         let player;
+        const startSecond = 34; // <--- CHANGE THIS anytime to set your start time
 
         var tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
@@ -38,9 +39,10 @@
                 width: '0',
                 videoId: 'GpQ63UI7mQc',
                 playerVars: {
-                    'start': 34, // <--- CHANGE THIS TO YOUR PREFERRED START SECOND
+                    'start': startSecond,
                     'autoplay': 0,
-                    'controls': 0
+                    'controls': 0,
+                    'playsinline': 1
                 },
                 events: {
                     'onReady': onPlayerReady
@@ -49,7 +51,7 @@
         }
 
         function onPlayerReady(event) {
-            // Player is ready
+            event.target.setVolume(100);
         }
 
         function nextStep() {
@@ -57,7 +59,9 @@
             const btn = document.getElementById('nextBtn');
 
             if (currentStep === 1) {
+                // Force music to play and seek to specific second immediately
                 if (player && player.playVideo) {
+                    player.seekTo(startSecond); 
                     player.playVideo();
                 }
                 textElement.innerText = "This is very random pero anyways...";
@@ -94,5 +98,4 @@
         }
     </script>
 </body>
-
 </html>
