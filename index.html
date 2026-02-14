@@ -8,25 +8,26 @@
         body { margin: 0; height: 100vh; display: flex; align-items: center; justify-content: center; background-color: #ffeef2; font-family: 'Segoe UI', sans-serif; overflow: hidden; text-align: center; }
         #card { background: white; padding: 40px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 85%; max-width: 400px; z-index: 10; position: relative; }
         h1 { color: #ff4d6d; font-size: 1.8rem; margin-bottom: 25px; line-height: 1.4; }
-        button { background-color: #ff4d6d; color: white; border: none; padding: 15px 35px; font-size: 1.1rem; border-radius: 50px; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(255, 77, 109, 0.3); }
+        button { background-color: #ff4d6d; color: white; border: none; padding: 15px 35px; font-size: 1.1rem; border-radius: 50px; cursor: pointer; transition: 0.3s; box-shadow: 0 4px 15px rgba(255, 77, 109, 0.3); -webkit-tap-highlight-color: transparent; }
         button:hover { transform: scale(1.05); background-color: #ff758f; }
         .floating-heart { position: absolute; color: #ff758f; user-select: none; pointer-events: none; z-index: 1; }
-        #player { display: none; }
+        #player { position: absolute; top: -9999px; left: -9999px; } /* Moves player off-screen but keeps it active */
     </style>
 </head>
-<body>
+<body onclick="primalClick()">
 
     <div id="player"></div>
 
     <div id="card">
         <h1 id="message-text">Hi Princess!</h1>
-        <button id="nextBtn" onclick="nextStep()">Continue</button>
+        <button id="nextBtn" onclick="nextStep(event)">Continue</button>
     </div>
 
     <script>
         let currentStep = 1;
         let player;
-        const startSecond = 34; // <--- CHANGE THIS anytime to set your start time
+        let hasInteracted = false;
+        const startSecond = 34; 
 
         var tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
@@ -35,14 +36,14 @@
 
         function onYouTubeIframeAPIReady() {
             player = new YT.Player('player', {
-                height: '0',
-                width: '0',
+                height: '1',
+                width: '1',
                 videoId: 'GpQ63UI7mQc',
                 playerVars: {
-                    'start': startSecond,
                     'autoplay': 0,
                     'controls': 0,
-                    'playsinline': 1
+                    'playsinline': 1,
+                    'mute': 1 // Start muted to satisfy mobile browsers
                 },
                 events: {
                     'onReady': onPlayerReady
@@ -51,17 +52,30 @@
         }
 
         function onPlayerReady(event) {
-            event.target.setVolume(100);
+            // Player is ready
         }
 
-        function nextStep() {
+        // This function "wakes up" the player on the very first touch anywhere
+        function primalClick() {
+            if (!hasInteracted && player && player.playVideo) {
+                player.playVideo(); 
+                player.pauseVideo(); // Start and immediately pause to "buffer"
+                player.unMute();
+                player.setVolume(100);
+                hasInteracted = true;
+            }
+        }
+
+        function nextStep(e) {
+            e.stopPropagation(); // Prevents double-triggering primalClick
             const textElement = document.getElementById('message-text');
             const btn = document.getElementById('nextBtn');
 
             if (currentStep === 1) {
-                // Force music to play and seek to specific second immediately
                 if (player && player.playVideo) {
-                    player.seekTo(startSecond); 
+                    player.unMute();
+                    player.setVolume(100);
+                    player.seekTo(startSecond);
                     player.playVideo();
                 }
                 textElement.innerText = "This is very random pero anyways...";
